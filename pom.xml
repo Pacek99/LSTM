@@ -15,19 +15,7 @@
     </properties>
 
     <!-- Modified for using SNAPSHOT versions - added repositories section -->
-    <repositories>
-        <repository>
-            <id>snapshots-repo</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-                <updatePolicy>daily</updatePolicy>  <!-- Optional, update daily -->
-            </snapshots>
-        </repository>
-    </repositories>
+    
 
     <dependencies>
         <!-- deeplearning4j-core: contains main functionality and neural networks -->
