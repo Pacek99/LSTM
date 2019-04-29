@@ -9,46 +9,32 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.math.BigInteger;
-import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.logging.Level;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.bytedeco.javacv.cvkernels;
-import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.SequenceRecordReader;
-import org.datavec.api.records.reader.impl.csv.CSVMultiSequenceRecordReader;
-import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
-import org.datavec.api.split.FileSplit;
 import org.datavec.api.split.NumberedFileInputSplit;
-import org.deeplearning4j.datasets.datavec.RecordReaderMultiDataSetIterator;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
-import org.deeplearning4j.datasets.iterator.MultiDataSetWrapperIterator;
 import org.deeplearning4j.eval.Evaluation;
 import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
+import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.conf.layers.LSTM;
 import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.activations.Activation;
-import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.dataset.api.iterator.MultiDataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
-import org.nd4j.linalg.primitives.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -95,6 +81,10 @@ public class ExternalDatasetVersion {
         baseTestDir.mkdir();
         featuresDirTest.mkdir();
         labelsDirTest.mkdir();
+        
+        //ak už mame dataset spracovany
+        //trainCount = 634;
+        //testCount = 264;
         
         trainCount = 0;
         testCount = 0;
@@ -231,6 +221,7 @@ public class ExternalDatasetVersion {
             processData(value,key,false);
         }*/
         
+        
         //vygenerovanie datasetov z externeho datasetu
         processDataExternalDataset("src/main/resources/Phones_accelerometer.csv");
         for (int i = 0; i < poctyAktivit.length; i++) {
@@ -240,7 +231,6 @@ public class ExternalDatasetVersion {
         //LSTM neuronka odtial dalej
         // ----- Load the training data -----
         SequenceRecordReader trainFeatures = new CSVSequenceRecordReader(0, csvSplitBy);
-        //SequenceRecordReader trainFeatures = new CSVMultiSequenceRecordReader(csvSplitBy, CSVMultiSequenceRecordReader.Mode.EQUAL_LENGTH);
         SequenceRecordReader trainLabels = new CSVSequenceRecordReader();
         try {
             trainFeatures.initialize(new NumberedFileInputSplit(featuresDirTrain.getAbsolutePath() + "/%d.csv", 0, trainCount-1));
@@ -251,7 +241,7 @@ public class ExternalDatasetVersion {
             java.util.logging.Logger.getLogger(ExternalDatasetVersion.class.getName()).log(Level.SEVERE, null, ex);
         }
         
-        int miniBatchSize = 10;
+        int miniBatchSize = 5;
         //int numLabelClasses = 6;
         int numLabelClasses = 5;   //externy dataset     
         DataSetIterator trainData = new SequenceRecordReaderDataSetIterator(trainFeatures, trainLabels, miniBatchSize, numLabelClasses,
@@ -286,6 +276,7 @@ public class ExternalDatasetVersion {
 
         // ----- Configure the network -----
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
+                .cudnnAlgoMode(ConvolutionLayer.AlgoMode.NO_WORKSPACE)
                 .seed(123)    //Random number generator seed for improved repeatability. Optional.
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Nesterovs(0.005))
@@ -304,7 +295,7 @@ public class ExternalDatasetVersion {
 
         
         // ----- Train the network, evaluating the test set performance at each epoch -----
-        int nEpochs = 200;
+        int nEpochs = 10;
         String str = "Test set evaluation at epoch %d: Accuracy = %.2f, F1 = %.2f";
         for (int i = 0; i < nEpochs; i++) {
             net.fit(trainData);
@@ -313,6 +304,9 @@ public class ExternalDatasetVersion {
             //Evaluation evaluation = net.evaluate(testData);            
             //log.info(String.format(str, i, evaluation.accuracy(), evaluation.f1()));
                        
+            Evaluation evaluation = net.evaluate(testData); 
+            log.info(evaluation.stats());
+        
             testData.reset();
             trainData.reset();
         }
