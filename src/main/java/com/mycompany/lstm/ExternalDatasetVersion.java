@@ -20,17 +20,21 @@ import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
 import org.datavec.api.split.NumberedFileInputSplit;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.eval.Evaluation;
+import org.deeplearning4j.nn.conf.ComputationGraphConfiguration;
 import org.deeplearning4j.nn.conf.GradientNormalization;
-import org.deeplearning4j.nn.conf.MultiLayerConfiguration;
 import org.deeplearning4j.nn.conf.NeuralNetConfiguration;
 import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
+import org.deeplearning4j.nn.conf.layers.DenseLayer;
+import org.deeplearning4j.nn.conf.layers.GlobalPoolingLayer;
 import org.deeplearning4j.nn.conf.layers.LSTM;
-import org.deeplearning4j.nn.conf.layers.RnnOutputLayer;
-import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.conf.layers.OutputLayer;
+import org.deeplearning4j.nn.conf.layers.PoolingType;
+import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.CompositeDataSetPreProcessor;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.NormalizerStandardize;
 import org.nd4j.linalg.learning.config.Nesterovs;
@@ -68,7 +72,7 @@ public class ExternalDatasetVersion {
     //pomocne pole na zistenie poctu jednotlivych aktivit v externom datasete
     private static int[] poctyAktivit;
     private static int[] poctyNaTraining;
-
+    
     /**
      * @param args the command line arguments
      */
@@ -83,11 +87,11 @@ public class ExternalDatasetVersion {
         labelsDirTest.mkdir();
         
         //ak už mame dataset spracovany
-        //trainCount = 634;
-        //testCount = 264;
+        trainCount = 634;
+        testCount = 264;
         
-        trainCount = 0;
-        testCount = 0;
+        //trainCount = 0;
+        //testCount = 0;
         
         //na pevno nastavene hodnoty pre externy dataset 70% train a 30% test
         poctyAktivit = new int[5];
@@ -103,107 +107,52 @@ public class ExternalDatasetVersion {
         Map<String, String> subory = new HashMap<String,String>();
         Map<String, String> suboryNaTest = new HashMap<String,String>();
         
-        // prieèinok B. Taylorová
-        //subory.put("src/main/resources/B. Taylorová/indora-1549482603748.csv", "MPU6500 Acceleration Sensor");        
-        //subory.put("src/main/resources/B. Taylorová/indora-1549482689471.csv", "MPU6500 Acceleration Sensor");        
-        //subory.put("src/main/resources/B. Taylorová/indora-1549482748787.csv", "MPU6500 Acceleration Sensor");        
-        //subory.put("src/main/resources/B. Taylorová/indora-1549482827151.csv", "MPU6500 Acceleration Sensor");        
-        //subory.put("src/main/resources/B. Taylorová/indora-1549482928447.csv", "MPU6500 Acceleration Sensor");        
-        //subory.put("src/main/resources/B. Taylorová/indora-1549482960030.csv", "MPU6500 Acceleration Sensor");
-                      
-        //subory.put("src/main/resources/B. Taylorová/indora-1552906231896.csv", "MPU6500 Acceleration Sensor");       
-        //subory.put("src/main/resources/B. Taylorová/indora-1552906271137.csv", "MPU6500 Acceleration Sensor");       
-        //subory.put("src/main/resources/B. Taylorová/indora-1552906425702.csv", "MPU6500 Acceleration Sensor");       
-        //subory.put("src/main/resources/B. Taylorová/indora-1552906472467.csv", "MPU6500 Acceleration Sensor");
-               
-        //subory.put("src/main/resources/B. Taylorová/indora-1552906553847.csv", "MPU6500 Acceleration Sensor");       
-        //subory.put("src/main/resources/B. Taylorová/indora-1553278125310.csv", "MPU6500 Acceleration Sensor");       
-        //subory.put("src/main/resources/B. Taylorová/indora-1553278129057.csv", "MPU6500 Acceleration Sensor");       
-        //subory.put("src/main/resources/B. Taylorová/indora-1553278160954.csv", "MPU6500 Acceleration Sensor");  
+        //nacitanie suborov na vytah hore                
+        subory.put("src/main/resources/Vytah/indora-1540546792759.csv", sensor);        
+        subory.put("src/main/resources/Vytah/indora-1549541647313.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1554699869876.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1554699925682.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1554728410434.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556082478032.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556082533389.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556110357233.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556110955057.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111007555.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111077350.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111125321.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111174552.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111227247.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111281572.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111329156.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111383811.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111433500.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111481240.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111530481.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111618750.csv", sensor);
         
-        // prieèinok M. Sochuliak
-        //subory.put("src/main/resources/M. Sochuliak/indora-1549012172677.csv", "ACCELEROMETER");        
-        //subory.put("src/main/resources/M. Sochuliak/indora-1549021777198.csv", "ACCELEROMETER");        
-        //subory.put("src/main/resources/M. Sochuliak/indora-1549022025135.csv", "ACCELEROMETER");        
-        //subory.put("src/main/resources/M. Sochuliak/indora-1549022068213.csv", "ACCELEROMETER");
-        
-        // prieèinok P. Kendra
-        suboryNaTest.put("src/main/resources/P. Kendra/indora-1549541475108.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541522778.csv", sensor);        
-        suboryNaTest.put("src/main/resources/P. Kendra/indora-1549541559653.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541572516.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541582979.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541633702.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541647313.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541673057.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541682687.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541695967.csv", sensor);        
-        subory.put("src/main/resources/P. Kendra/indora-1549541708344.csv", sensor);
-        
-        // prieèinok P. Rojek
-        subory.put("src/main/resources/P. Rojek/indora-1540484172540.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1540484443308.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1540484680716.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1540546792759.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1540554936805.csv", sensor);
-        subory.put("src/main/resources/P. Rojek/indora-1554699869876.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1554699898743.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1554699925682.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1554699994623.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1554710761298.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1554728381607.csv", sensor);        
-        subory.put("src/main/resources/P. Rojek/indora-1554728410434.csv", sensor);
-        
-        
-        // prieèinok Š. Rojek
-        subory.put("src/main/resources/Š. Rojek/indora-1540362934669.csv", sensor);        
-        subory.put("src/main/resources/Š. Rojek/indora-1540363171233.csv", sensor);        
-        subory.put("src/main/resources/Š. Rojek/indora-1540363247042.csv", sensor);        
-        subory.put("src/main/resources/Š. Rojek/indora-1540363314900.csv", sensor);        
-        subory.put("src/main/resources/Š. Rojek/indora-1540363406576.csv", sensor);
-        
-        // prieèinok sk.upjs.indora.sensorsrecorder         
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541475108.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541522778.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541552672.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541559653.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541572516.csv", sensor); 
-        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541582979.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541633702.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541647313.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541673057.csv", sensor);        
-        suboryNaTest.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541682687.csv", sensor); 
-        
-        suboryNaTest.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541695967.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1549541708344.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553014481636.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553014543983.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553014570035.csv", sensor); 
-        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553019600096.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553019658511.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553019699799.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553589053903.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553589171764.csv", sensor); 
-        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553589248068.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553589338226.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553589368041.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553589528999.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553609125909.csv", sensor); 
-        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553609140518.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553609169349.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553609197288.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553609224970.csv", sensor);        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553609253485.csv", sensor); 
-        
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553610218773.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553610244950.csv", sensor);
-        subory.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553610273270.csv", sensor);        
-        suboryNaTest.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553610302262.csv", sensor);        
-        suboryNaTest.put("src/main/resources/sk.upjs.indora.sensorsrecorder/indora-1553610326669.csv", sensor); 
+        //nacitanie suborov na vytah dole
+        subory.put("src/main/resources/Vytah/indora-1540554936805.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1549541522778.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1554699898743.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1554699994623.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1554710761298.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1554728381607.csv", sensor);        
+        subory.put("src/main/resources/Vytah/indora-1556082506828.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556082560909.csv", sensor);      
+        subory.put("src/main/resources/Vytah/indora-1556110062122.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556110929890.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556110980942.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111051918.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111098861.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111149569.csv", sensor);
+        subory.put("src/main/resources/Vytah/indora-1556111200762.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111304040.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111352315.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111407332.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111459842.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111504747.csv", sensor);
+        suboryNaTest.put("src/main/resources/Vytah/indora-1556111665614.csv", sensor);
+         
         /*
         // vygenerovanie treningoveho datasetu 
         for (Map.Entry<String, String> entry : subory.entrySet()) {
@@ -221,13 +170,13 @@ public class ExternalDatasetVersion {
             processData(value,key,false);
         }*/
         
-        
+        /*
         //vygenerovanie datasetov z externeho datasetu
         processDataExternalDataset("src/main/resources/Phones_accelerometer.csv");
         for (int i = 0; i < poctyAktivit.length; i++) {
             System.out.println("pocet zaznamov aktivity " + i + "  :" + poctyAktivit[i]);
         }
-        
+        */
         //LSTM neuronka odtial dalej
         // ----- Load the training data -----
         SequenceRecordReader trainFeatures = new CSVSequenceRecordReader(0, csvSplitBy);
@@ -246,14 +195,15 @@ public class ExternalDatasetVersion {
         int numLabelClasses = 5;   //externy dataset     
         DataSetIterator trainData = new SequenceRecordReaderDataSetIterator(trainFeatures, trainLabels, miniBatchSize, numLabelClasses,
             false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
-
+                     
         //Normalize the training data
         DataNormalization normalizer = new NormalizerStandardize();
         normalizer.fit(trainData);              //Collect training data statistics
         trainData.reset();
 
         //Use previously collected statistics to normalize on-the-fly. Each DataSet returned by 'trainData' iterator will be normalized
-        trainData.setPreProcessor(normalizer);
+        //trainData.setPreProcessor(normalizer);
+        trainData.setPreProcessor(new CompositeDataSetPreProcessor(normalizer, new LabelLastTimeStepPreProcessor()));
 
         
         // ----- Load the test data -----
@@ -271,9 +221,10 @@ public class ExternalDatasetVersion {
         DataSetIterator testData = new SequenceRecordReaderDataSetIterator(testFeatures, testLabels, miniBatchSize, numLabelClasses,
             false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
         
-        testData.setPreProcessor(normalizer);   //Note that we are using the exact same normalization process as the training data
+        //testData.setPreProcessor(normalizer);   //Note that we are using the exact same normalization process as the training data
+        testData.setPreProcessor(new CompositeDataSetPreProcessor(normalizer, new LabelLastTimeStepPreProcessor()));
         
-
+        /*
         // ----- Configure the network -----
         MultiLayerConfiguration conf = new NeuralNetConfiguration.Builder()
                 .cudnnAlgoMode(ConvolutionLayer.AlgoMode.NO_WORKSPACE)
@@ -283,12 +234,36 @@ public class ExternalDatasetVersion {
                 .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)  //Not always required, but helps with this data set
                 .gradientNormalizationThreshold(0.5)
                 .list()
-                .layer(0, new LSTM.Builder().activation(Activation.TANH).nIn(3).nOut(10).build())
-                .layer(1, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
+                .layer(0, new LSTM.Builder().activation(Activation.TANH).updater(new Adam(1e-3)).nIn(3).nOut(10).build())
+                .layer(1, new LSTM.Builder().activation(Activation.TANH).nIn(10).nOut(10).build())
+                .layer(2, new GlobalPoolingLayer.Builder().poolingType(PoolingType.MAX).build())
+                .layer(3, new GlobalPoolingLayer.Builder().poolingType(PoolingType.AVG).build())
+                .layer(4, new DenseLayer.Builder().nIn(10).nOut(10).activation(Activation.TANH).build())
+                .layer(5, new RnnOutputLayer.Builder(LossFunctions.LossFunction.MCXENT)
                         .activation(Activation.SOFTMAX).nIn(10).nOut(numLabelClasses).build())
                 .build();
+        */
+        ComputationGraphConfiguration configuration = new NeuralNetConfiguration.Builder()
+                .cudnnAlgoMode(ConvolutionLayer.AlgoMode.NO_WORKSPACE)
+                .weightInit(WeightInit.XAVIER)
+                .updater(new Nesterovs(0.005))
+                .gradientNormalization(GradientNormalization.ClipElementWiseAbsoluteValue)  //Not always required, but helps with this data set
+                .gradientNormalizationThreshold(0.5)
+                .seed(123)
+                .graphBuilder()
+                .addInputs("input")
+                .addLayer("L1", new LSTM.Builder().nIn(3).nOut(5).activation(Activation.TANH).build(),"input")
+                .addLayer("L2", new LSTM.Builder().nIn(5).nOut(5).activation(Activation.TANH).build(),"L1")
+                .addLayer("globalPoolMax", new GlobalPoolingLayer.Builder().poolingType(PoolingType.MAX).dropOut(0.5).build(), "L2")                
+                .addLayer("globalPoolAvg", new GlobalPoolingLayer.Builder().poolingType(PoolingType.AVG).dropOut(0.5).build(), "globalPoolMax")
+                .addLayer("D1", new DenseLayer.Builder().nIn(5).nOut(5).activation(Activation.TANH).build(), "globalPoolAvg")
+                .addLayer("output", new OutputLayer.Builder(LossFunctions.LossFunction.MCXENT).activation(Activation.SOFTMAX).nIn(5).nOut(numLabelClasses).build(), "D1")
+                .setOutputs("output")
+                .build();
 
-        MultiLayerNetwork net = new MultiLayerNetwork(conf);
+        ComputationGraph net = new ComputationGraph(configuration);
+        
+        //MultiLayerNetwork net = new MultiLayerNetwork(conf);
         net.init();
 
         net.setListeners(new ScoreIterationListener(20));   //Print the score (loss function value) every 20 iterations
