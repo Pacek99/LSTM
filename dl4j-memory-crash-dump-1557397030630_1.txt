@@ -1,0 +1,130 @@
+Deeplearning4j OOM Exception Encountered for ComputationGraph
+Timestamp:                              2019-05-09 12:17:10.630
+Thread ID                               1
+Thread Name                             main
+
+
+Stack Trace:
+java.lang.OutOfMemoryError: Cannot allocate new FloatPointer(1): totalBytes = 537, physicalBytes = 7269M
+	at org.bytedeco.javacpp.FloatPointer.<init>(FloatPointer.java:76)
+	at org.bytedeco.javacpp.FloatPointer.<init>(FloatPointer.java:41)
+	at org.nd4j.linalg.jcublas.blas.JcublasLevel3.sgemm(JcublasLevel3.java:124)
+	at org.nd4j.linalg.api.blas.impl.BaseLevel3.gemm(BaseLevel3.java:97)
+	at org.nd4j.linalg.factory.Nd4j.gemm(Nd4j.java:903)
+	at org.deeplearning4j.nn.layers.recurrent.LSTMHelpers.backpropGradientHelper(LSTMHelpers.java:688)
+	at org.deeplearning4j.nn.layers.recurrent.LSTM.backpropGradientHelper(LSTM.java:119)
+	at org.deeplearning4j.nn.layers.recurrent.LSTM.backpropGradient(LSTM.java:90)
+	at org.deeplearning4j.nn.graph.vertex.impl.LayerVertex.doBackward(LayerVertex.java:149)
+	at org.deeplearning4j.nn.graph.ComputationGraph.calcBackpropGradients(ComputationGraph.java:2663)
+	at org.deeplearning4j.nn.graph.ComputationGraph.computeGradientAndScore(ComputationGraph.java:1378)
+	at org.deeplearning4j.nn.graph.ComputationGraph.computeGradientAndScore(ComputationGraph.java:1338)
+	at org.deeplearning4j.optimize.solvers.BaseOptimizer.gradientAndScore(BaseOptimizer.java:160)
+	at org.deeplearning4j.optimize.solvers.StochasticGradientDescent.optimize(StochasticGradientDescent.java:63)
+	at org.deeplearning4j.optimize.Solver.optimize(Solver.java:52)
+	at org.deeplearning4j.nn.graph.ComputationGraph.fitHelper(ComputationGraph.java:1162)
+	at org.deeplearning4j.nn.graph.ComputationGraph.fit(ComputationGraph.java:1112)
+	at org.deeplearning4j.nn.graph.ComputationGraph.fit(ComputationGraph.java:1079)
+	at org.deeplearning4j.nn.graph.ComputationGraph.fit(ComputationGraph.java:1015)
+	at com.mycompany.lstm.LSTMExternalDataset.main(LSTMExternalDataset.java:174)
+Caused by: java.lang.OutOfMemoryError: Physical memory usage is too high: physicalBytes (7269M) > maxPhysicalBytes (7257M)
+	at org.bytedeco.javacpp.Pointer.deallocator(Pointer.java:585)
+	at org.bytedeco.javacpp.Pointer.init(Pointer.java:125)
+	at org.bytedeco.javacpp.FloatPointer.allocateArray(Native Method)
+	at org.bytedeco.javacpp.FloatPointer.<init>(FloatPointer.java:68)
+	... 19 more
+
+
+========== Memory Information ==========
+----- Version Information -----
+Deeplearning4j Version                  1.0.0-beta4
+Deeplearning4j CUDA                     deeplearning4j-cuda-10.1
+
+----- System Information -----
+Operating System                        Microsoft Windows 10
+CPU                                     Intel(R) Core(TM) i7-8700 CPU @ 3.20GHz
+CPU Cores - Physical                    6
+CPU Cores - Logical                     12
+Total System Memory                      15,94 GiB (17114943488)
+Number of GPUs Detected                 1
+  Name                           CC                Total Memory              Used Memory              Free Memory
+  GeForce GTX 1050 Ti            6.1      4,00 GiB (4294967296)    1,97 GiB (2114335540)    2,03 GiB (2180631756)
+
+----- ND4J Environment Information -----
+Data Type                               FLOAT
+backend                                 CUDA
+blas.vendor                             CUBLAS
+os                                      Windows 10
+
+----- Memory Configuration -----
+JVM Memory: XMX                           3,54 GiB (3804758016)
+JVM Memory: current                       1,90 GiB (2040528896)
+JavaCPP Memory: Max Bytes                 3,54 GiB (3804758016)
+JavaCPP Memory: Max Physical              7,09 GiB (7609516032)
+JavaCPP Memory: Current Bytes             537,00 B
+JavaCPP Memory: Current Physical          5,80 GiB (6228733952)
+Periodic GC Enabled                     false
+
+----- Workspace Information -----
+Workspaces: # for current thread        6
+Current thread workspaces:
+  Name                      State       Size                          # Cycles            
+  WS_LAYER_WORKING_MEM      CLOSED       72,08 MiB (75586259)         14                  
+  WS_ALL_LAYERS_ACT         CLOSED       12,01 MiB (12590877)         1                   
+  WS_LAYER_ACT_2            CLOSED           ,00 B                    2                   
+  WS_RNN_LOOP_WORKING_MEM   CLOSED        608,00 B                    309225              
+  WS_LAYER_ACT_0            CLOSED           ,00 B                    3                   
+  WS_LAYER_ACT_1            CLOSED           ,00 B                    2                   
+Workspaces total size                    84,09 MiB (88177744)
+
+----- Network Information -----
+Network # Parameters                    485
+Parameter Memory                          1,89 KiB (1940)
+Parameter Gradients Memory                1,89 KiB (1940)
+Updater Number of Elements              485
+Updater Memory                            1,89 KiB (1940)
+Updater Classes:
+  org.nd4j.linalg.learning.NesterovsUpdater
+Params + Gradient + Updater Memory        3,79 KiB (3880)
+Iteration Count                         0
+Epoch Count                             0
+Backprop Type                           Standard
+Workspace Mode: Training                ENABLED
+Workspace Mode: Inference               ENABLED
+Number of Layers                        6
+Layer Counts
+  DenseLayer                              1
+  GlobalPoolingLayer                      2
+  LSTM                                    2
+  OutputLayer                             1
+Layer Parameter Breakdown
+  Idx Name                 Layer Type           Layer # Parameters   Layer Parameter Memory
+  1   L1                   LSTM                 180                    720,00 B          
+  2   L2                   LSTM                 220                    880,00 B          
+  3   globalPoolMax        GlobalPoolingLayer   0                         ,00 B          
+  4   globalPoolAvg        GlobalPoolingLayer   0                         ,00 B          
+  5   D1                   DenseLayer           55                     220,00 B          
+  7   output               OutputLayer          30                     120,00 B          
+
+----- Layer Helpers - Memory Use -----
+Total Helper Count                      0
+Helper Count w/ Memory                  0
+Total Helper Persistent Memory Use           ,00 B
+
+----- Network Activations: Inferred Activation Shapes -----
+Current Minibatch Size                  5
+Current Input Shape (Input 0)           [5, 3, 59954]
+Idx Name                 Layer Type           Activations Type                           Activations Shape    # Elements   Memory      
+0   input                InputVertex          InputTypeRecurrent(3,timeSeriesLength=59954) [5, 3, 59954]        899310         3,43 MiB (3597240)
+1   L1                   LSTM                 InputTypeRecurrent(5,timeSeriesLength=59954) [5, 5, 59954]        1498850        5,72 MiB (5995400)
+2   L2                   LSTM                 InputTypeRecurrent(5,timeSeriesLength=59954) [5, 5, 59954]        1498850        5,72 MiB (5995400)
+3   globalPoolMax        GlobalPoolingLayer   InputTypeFeedForward(5)                    [5, 5]               25             100,00 B  
+4   globalPoolAvg        GlobalPoolingLayer   InputTypeFeedForward(5)                    [5, 5]               25             100,00 B  
+5   D1                   DenseLayer           InputTypeFeedForward(5)                    [5, 5]               25             100,00 B  
+6   D1-merge             MergeVertex          InputTypeFeedForward(10)                   [5, 10]              50             200,00 B  
+7   output               OutputLayer          InputTypeFeedForward(5)                    [5, 5]               25             100,00 B  
+Total Activations Memory                 14,87 MiB (15588640)
+Total Activation Gradient Memory         14,87 MiB (15588540)
+
+----- Network Training Listeners -----
+Number of Listeners                     1
+Listener 0                              ScoreIterationListener(20)

@@ -44,7 +44,7 @@ public class LSTMExternalDataset {
     private static final Logger log = LoggerFactory.getLogger(LSTMExternalDataset.class);
 
     //'baseDir': Base directory for the data. Change this if you want to save the data somewhere else
-    private static File baseDir = new File("src/main/resources/uciLSTMExternalDataset/");
+    private static File baseDir = new File("src/main/resources/lstmExternalDataset/");
     //private static File baseDir = new File("C:/Temp/LSTM/");
     private static File baseTrainDir = new File(baseDir, "train");
     private static File featuresDirTrain = new File(baseTrainDir, "features");
@@ -78,11 +78,11 @@ public class LSTMExternalDataset {
         labelsDirTest.mkdir();
 
         //if we already have dataset computed and commented lines 83-84 and 148-159
-        trainCount = 668;
-        testCount = 274;
+        //trainCount = 668;
+        //testCount = 274;
 
-        //trainCount = 0;
-        //testCount = 0;
+        trainCount = 0;
+        testCount = 0;
 
         //set value for external dataset 70% train a 30% test
         poctyAktivit = new int[7];
@@ -146,7 +146,7 @@ public class LSTMExternalDataset {
         subory.put("src/main/resources/Vytah/indora-1556111504747.csv", sensor);
         subory.put("src/main/resources/Vytah/indora-1556111665614.csv", sensor);
          
-        /*
+        
         // vygenerovanie datasetu vytahov
         for (Map.Entry<String, String> entry : subory.entrySet()) {
             String key = entry.getKey();
@@ -157,7 +157,7 @@ public class LSTMExternalDataset {
 
         //generate dataset from external dataset
         processDataExternalDataset("src/main/resources/Phones_accelerometer.csv");
-        */      
+             
         //LSTM neuronka odtial dalej
         // ----- Load the training data -----
         SequenceRecordReader trainFeatures = new CSVSequenceRecordReader(0, csvSplitBy);
